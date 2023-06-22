@@ -1,0 +1,106 @@
+######### STACK ################
+
+======stack1======
+goroutine 1 [running]:
+main.stackExample()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:11 +0x59
+main.main()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:55 +0x57
+
+======stack4======
+goroutine 18 [running]:
+main.stackExample.func1()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:28 +0x13e
+created by main.stackExample
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:14 +0x135
+
+goroutine 1 [sleep]:
+time.Sleep(0x3b9aca00)
+	/usr/local/go/src/runtime/time.go:195 +0x135
+main.stackExample()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:33 +0x13f
+main.main()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:55 +0x57
+
+goroutine 19 [semacquire]:
+runtime.Stack({0xc0000a8000, 0x800, 0x800}, 0x1)
+	/usr/local/go/src/runtime/mprof.go:1193 +0x4d
+main.stackExample.func1.1()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:17 +0x45
+created by main.stackExample.func1
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:16 +0xad
+
+goroutine 20 [runnable]:
+main.stackExample.func1.2()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:22
+created by main.stackExample.func1
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:22 +0x125
+
+======stack2======
+goroutine 19 [running]:
+main.stackExample.func1.1()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:17 +0x45
+created by main.stackExample.func1
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:16 +0xad
+
+goroutine 1 [sleep]:
+time.Sleep(0x3b9aca00)
+	/usr/local/go/src/runtime/time.go:195 +0x135
+main.stackExample()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:33 +0x13f
+main.main()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:55 +0x57
+
+goroutine 20 [semacquire]:
+runtime.Stack({0xc0000a8000, 0x800, 0x800}, 0x1)
+	/usr/local/go/src/runtime/mprof.go:1193 +0x4d
+main.stackExample.func1.2()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:23 +0x45
+created by main.stackExample.func1
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:22 +0x125
+
+======stack3======
+goroutine 20 [running]:
+main.stackExample.func1.2()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:23 +0x45
+created by main.stackExample.func1
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:22 +0x125
+
+goroutine 1 [sleep]:
+time.Sleep(0x3b9aca00)
+	/usr/local/go/src/runtime/time.go:195 +0x135
+main.stackExample()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:33 +0x13f
+main.main()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:55 +0x57
+
+goroutine 19 [runnable]:
+syscall.Syscall(0x497a20?, 0x1?, 0x80000000000?, 0x7ffff80000000000?)
+	/usr/local/go/src/syscall/syscall_linux.go:69 +0x27
+syscall.write(0xc00009c060?, {0xc0000b0000?, 0xc00004af00?, 0x482547?})
+	/usr/local/go/src/syscall/zsyscall_linux_amd64.go:939 +0x45
+syscall.Write(...)
+	/usr/local/go/src/syscall/syscall_unix.go:206
+internal/poll.ignoringEINTRIO(...)
+	/usr/local/go/src/internal/poll/fd_unix.go:794
+internal/poll.(*FD).Write(0xc00009c060, {0xc0000b0000, 0x389, 0x480})
+	/usr/local/go/src/internal/poll/fd_unix.go:383 +0x385
+os.(*File).write(...)
+	/usr/local/go/src/os/file_posix.go:48
+os.(*File).Write(0xc00009a008, {0xc0000b0000?, 0x389, 0xc00004afc0?})
+	/usr/local/go/src/os/file.go:175 +0x65
+fmt.Fprintf({0x4b9e68, 0xc00009a008}, {0x49e6af, 0x16}, {0xc00004afc0, 0x1, 0x1})
+	/usr/local/go/src/fmt/print.go:225 +0x9b
+fmt.Printf(...)
+	/usr/local/go/src/fmt/print.go:233
+main.stackExample.func1.1()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:18 +0xab
+created by main.stackExample.func1
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:16 +0xad
+
+======stack5======
+goroutine 1 [running]:
+main.stackExample()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:35 +0x156
+main.main()
+	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:55 +0x57
