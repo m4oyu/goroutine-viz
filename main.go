@@ -7,7 +7,7 @@ type traceNode struct {
 	child  []*traceNode
 }
 
-func watchGoroutine() (output, debugOutput []byte) {
+func WatchGoroutine() (output, debugOutput []byte) {
 	stackSlice := make([]byte, 2048)
 	s := runtime.Stack(stackSlice, true)
 
