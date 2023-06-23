@@ -1,4 +1,4 @@
-module github/m4oyu/runtimeStack
+module github.com/m4oyu/runtimeStack
 
 go 1.20
 

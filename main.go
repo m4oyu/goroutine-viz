@@ -1,7 +1,7 @@
 package visualizationtool
 
 import (
-	"bytes"
+	"os"
 	"regexp"
 	"runtime"
 	"sort"
@@ -11,13 +11,9 @@ import (
 )
 
 var regexInt = regexp.MustCompile(`\d+`)
+var regexBrackets = regexp.MustCompile(`\([^)]*\)`)
 
-type goroutineNode struct {
-	parent *goroutineNode
-	child  []*goroutineNode
-}
-
-func WatchGoroutine() (output, debugOutput []byte, err error) {
+func WatchGoroutine() error {
 	stackSlice := make([]byte, 2048)
 	s := runtime.Stack(stackSlice, true)
 
@@ -37,7 +33,7 @@ func WatchGoroutine() (output, debugOutput []byte, err error) {
 			if strings.HasPrefix(line, "goroutine ") {
 				oa.goroutineId = regexInt.FindString(line)
 			} else if strings.HasSuffix(line, ")") {
-				oa.funcStack = append(oa.funcStack, line)
+				oa.funcStack = append(oa.funcStack, regexBrackets.ReplaceAllString(line, ""))
 			} else if strings.HasPrefix(line, "created by ") {
 				oa.createdBy, _ = strings.CutPrefix(line, "created by ")
 			}
@@ -57,17 +53,16 @@ func WatchGoroutine() (output, debugOutput []byte, err error) {
 		for _, v := range oaArray[i].funcStack {
 			for j := 0; j < len(oaArray); j++ {
 				if v == oaArray[j].createdBy {
-					oaArray[j].node = oaArray[i].node.Add("goroutine " + oaArray[j].goroutineId)
+					oaArray[j].node = oaArray[i].node.Add("goroutine " + oaArray[j].goroutineId + " (created by " + oaArray[j].createdBy + ")")
 				}
 			}
 		}
 	}
 
-	var buf bytes.Buffer
-	if err := gtree.OutputProgrammably(buf, root); err != nil {
-		return nil, nil, err
+	if err := gtree.OutputProgrammably(os.Stdout, root); err != nil {
+		return err
 	}
 
-	return buf.Bytes(), stackSlice[0:s], nil
+	return nil
 
 }
