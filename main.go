@@ -1,7 +1,9 @@
 package visualizationtool
 
 import (
-	"os"
+	"bufio"
+	"bytes"
+	"fmt"
 	"regexp"
 	"runtime"
 	"sort"
@@ -13,8 +15,8 @@ import (
 var regexInt = regexp.MustCompile(`\d+`)
 var regexBrackets = regexp.MustCompile(`\([^)]*\)`)
 
-func WatchGoroutine() error {
-	stackSlice := make([]byte, 2048)
+func WatchGoroutine(header string) {
+	stackSlice := make([]byte, 4096*2)
 	s := runtime.Stack(stackSlice, true)
 
 	type outputAnalysis struct {
@@ -28,6 +30,7 @@ func WatchGoroutine() error {
 	blocks := strings.Split(string(stackSlice[0:s]), "\n\n")
 	for _, block := range blocks {
 		var oa outputAnalysis
+		target := true
 		lines := strings.Split(block, "\n")
 		for _, line := range lines {
 			if strings.HasPrefix(line, "goroutine ") {
@@ -35,10 +38,16 @@ func WatchGoroutine() error {
 			} else if strings.HasSuffix(line, ")") {
 				oa.funcStack = append(oa.funcStack, regexBrackets.ReplaceAllString(line, ""))
 			} else if strings.HasPrefix(line, "created by ") {
+				if strings.Contains(line, "gtree") {
+					target = false
+					break
+				}
 				oa.createdBy, _ = strings.CutPrefix(line, "created by ")
 			}
 		}
-		oaArray = append(oaArray, oa)
+		if target {
+			oaArray = append(oaArray, oa)
+		}
 	}
 
 	sort.Slice(oaArray, func(i, j int) bool {
@@ -59,10 +68,13 @@ func WatchGoroutine() error {
 		}
 	}
 
-	if err := gtree.OutputProgrammably(os.Stdout, root); err != nil {
-		return err
+	var b bytes.Buffer
+	w := bufio.NewWriter(&b)
+	w.WriteString(header + "\n")
+
+	err := gtree.OutputProgrammably(w, root)
+	if err != nil {
+		fmt.Println(err)
 	}
-
-	return nil
-
+	fmt.Println(b.String())
 }
