@@ -1,38 +1,73 @@
 package visualizationtool
 
-import "runtime"
+import (
+	"bytes"
+	"regexp"
+	"runtime"
+	"sort"
+	"strings"
 
-type traceNode struct {
-	parent *traceNode
-	child  []*traceNode
+	"github.com/ddddddO/gtree"
+)
+
+var regexInt = regexp.MustCompile(`\d+`)
+
+type goroutineNode struct {
+	parent *goroutineNode
+	child  []*goroutineNode
 }
 
-func WatchGoroutine() (output, debugOutput []byte) {
+func WatchGoroutine() (output, debugOutput []byte, err error) {
 	stackSlice := make([]byte, 2048)
 	s := runtime.Stack(stackSlice, true)
 
-	return stackSlice[0:s], stackSlice[0:s]
+	type outputAnalysis struct {
+		goroutineId string
+		funcStack   []string
+		createdBy   string
+		node        *gtree.Node
+	}
 
-	// 	goroutine 18 [running]:
-	// main.stackExample.func1()
-	// 	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:28 +0x13e
-	// created by main.stackExample
-	// 	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:14 +0x135
+	var oaArray []outputAnalysis
+	blocks := strings.Split(string(stackSlice[0:s]), "\n\n")
+	for _, block := range blocks {
+		var oa outputAnalysis
+		lines := strings.Split(block, "\n")
+		for _, line := range lines {
+			if strings.HasPrefix(line, "goroutine ") {
+				oa.goroutineId = regexInt.FindString(line)
+			} else if strings.HasSuffix(line, ")") {
+				oa.funcStack = append(oa.funcStack, line)
+			} else if strings.HasPrefix(line, "created by ") {
+				oa.createdBy, _ = strings.CutPrefix(line, "created by ")
+			}
+		}
+		oaArray = append(oaArray, oa)
+	}
 
-	// goroutine 1 [sleep]:
-	// time.Sleep(0x3b9aca00)
-	// 	/usr/local/go/src/runtime/time.go:195 +0x135
-	// main.stackExample()
-	// 	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:33 +0x13f
-	// main.main()
-	// 	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:55 +0x57
+	sort.Slice(oaArray, func(i, j int) bool {
+		return oaArray[i].goroutineId < oaArray[j].goroutineId
+	})
 
-	// goroutine 19 [semacquire]:
-	// runtime.Stack({0xc0000a8000, 0x800, 0x800}, 0x1)
-	// 	/usr/local/go/src/runtime/mprof.go:1193 +0x4d
-	// main.stackExample.func1.1()
-	// 	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:17 +0x45
-	// created by main.stackExample.func1
-	// 	/home/m4oyu/go/src/github/m4oyu/visualizationTool/runtimeStack/main.go:16 +0xad
+	var root *gtree.Node
+	root = gtree.NewRoot("goroutine 1 (main goroutine)")
+	oaArray[0].node = root
+
+	for i := 0; i < len(oaArray); i++ {
+		for _, v := range oaArray[i].funcStack {
+			for j := 0; j < len(oaArray); j++ {
+				if v == oaArray[j].createdBy {
+					oaArray[j].node = oaArray[i].node.Add("goroutine " + oaArray[j].goroutineId)
+				}
+			}
+		}
+	}
+
+	var buf bytes.Buffer
+	if err := gtree.OutputProgrammably(buf, root); err != nil {
+		return nil, nil, err
+	}
+
+	return buf.Bytes(), stackSlice[0:s], nil
 
 }
