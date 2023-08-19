@@ -12,61 +12,84 @@ import (
 	"github.com/ddddddO/gtree"
 )
 
-var regexInt = regexp.MustCompile(`\d+`)
-var regexBrackets = regexp.MustCompile(`\([^)]*\)`)
+type goroutineNode struct {
+	goroutineId string
+	funcStack   []string
+	createdBy   string
+	tree        *gtree.Node
+}
+
+var (
+	regexInt      = regexp.MustCompile(`\d+`)
+	regexBrackets = regexp.MustCompile(`\([^)]*\)`)
+)
+
+func parseText(blocks []string) []goroutineNode {
+	var goroutineList []goroutineNode
+
+	for _, block := range blocks {
+		var gNode goroutineNode
+		isTarget := true
+		lines := strings.Split(block, "\n")
+
+		for _, line := range lines {
+			if strings.HasPrefix(line, "goroutine ") {
+				gNode.goroutineId = regexInt.FindString(line)
+			} else if strings.HasSuffix(line, ")") {
+				gNode.funcStack = append(gNode.funcStack, regexBrackets.ReplaceAllString(line, ""))
+			} else if strings.HasPrefix(line, "created by ") {
+				// gNode.createdBy = strings.TrimPrefix(line, "created by ")
+				// if !strings.Contains(gNode.createdBy, "gtree") {
+				// 	gNode.createdBy = "contain gtree"
+				// }
+				if strings.Contains(line, "gtree") {
+					isTarget = false
+					break
+				}
+				gNode.createdBy, _ = strings.CutPrefix(line, "created by ")
+			}
+		}
+
+		// if gNode.createdBy != "contain gtree" {
+		// 	goroutineList = append(goroutineList, gNode)
+		// }
+		if isTarget {
+			goroutineList = append(goroutineList, gNode)
+		}
+	}
+
+	sort.Slice(goroutineList, func(i, j int) bool {
+		return goroutineList[i].goroutineId < goroutineList[j].goroutineId
+	})
+
+	return goroutineList
+}
+
+func buildGoroutineTree(goroutineList []goroutineNode) *gtree.Node {
+	var root *gtree.Node
+	root = gtree.NewRoot("goroutine 1 (main goroutine)")
+	goroutineList[0].tree = root
+
+	for i := 0; i < len(goroutineList); i++ {
+		for _, v := range goroutineList[i].funcStack {
+			for j := 0; j < len(goroutineList); j++ {
+				if v == goroutineList[j].createdBy {
+					goroutineList[j].tree = goroutineList[i].tree.Add("goroutine " + goroutineList[j].goroutineId + " (created by " + goroutineList[j].createdBy + ")")
+				}
+			}
+		}
+	}
+	return root
+}
 
 func WatchGoroutine(header string) {
 	stackSlice := make([]byte, 4096*2)
 	s := runtime.Stack(stackSlice, true)
-
-	type outputAnalysis struct {
-		goroutineId string
-		funcStack   []string
-		createdBy   string
-		node        *gtree.Node
-	}
-
-	var oaArray []outputAnalysis
 	blocks := strings.Split(string(stackSlice[0:s]), "\n\n")
-	for _, block := range blocks {
-		var oa outputAnalysis
-		target := true
-		lines := strings.Split(block, "\n")
-		for _, line := range lines {
-			if strings.HasPrefix(line, "goroutine ") {
-				oa.goroutineId = regexInt.FindString(line)
-			} else if strings.HasSuffix(line, ")") {
-				oa.funcStack = append(oa.funcStack, regexBrackets.ReplaceAllString(line, ""))
-			} else if strings.HasPrefix(line, "created by ") {
-				if strings.Contains(line, "gtree") {
-					target = false
-					break
-				}
-				oa.createdBy, _ = strings.CutPrefix(line, "created by ")
-			}
-		}
-		if target {
-			oaArray = append(oaArray, oa)
-		}
-	}
 
-	sort.Slice(oaArray, func(i, j int) bool {
-		return oaArray[i].goroutineId < oaArray[j].goroutineId
-	})
+	goroutineList := parseText(blocks)
 
-	var root *gtree.Node
-	root = gtree.NewRoot("goroutine 1 (main goroutine)")
-	oaArray[0].node = root
-
-	for i := 0; i < len(oaArray); i++ {
-		for _, v := range oaArray[i].funcStack {
-			for j := 0; j < len(oaArray); j++ {
-				if v == oaArray[j].createdBy {
-					oaArray[j].node = oaArray[i].node.Add("goroutine " + oaArray[j].goroutineId + " (created by " + oaArray[j].createdBy + ")")
-				}
-			}
-		}
-	}
+	root := buildGoroutineTree(goroutineList)
 
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
