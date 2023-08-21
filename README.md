@@ -3,7 +3,7 @@ A simple goroutine visualization tool
 
 ## Usage
 ```go
-bto
+
 ```
 
 ## Installation
