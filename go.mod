@@ -1,4 +1,4 @@
-module github.com/m4oyu/visualizationTool
+module github.com/m4oyu/goroutine-viz
 
 go 1.20
 
