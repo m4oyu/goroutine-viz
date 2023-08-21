@@ -38,10 +38,6 @@ func parseText(blocks []string) []goroutineNode {
 			} else if strings.HasSuffix(line, ")") {
 				gNode.funcStack = append(gNode.funcStack, regexBrackets.ReplaceAllString(line, ""))
 			} else if strings.HasPrefix(line, "created by ") {
-				// gNode.createdBy = strings.TrimPrefix(line, "created by ")
-				// if !strings.Contains(gNode.createdBy, "gtree") {
-				// 	gNode.createdBy = "contain gtree"
-				// }
 				if strings.Contains(line, "gtree") {
 					isTarget = false
 					break
@@ -49,10 +45,6 @@ func parseText(blocks []string) []goroutineNode {
 				gNode.createdBy, _ = strings.CutPrefix(line, "created by ")
 			}
 		}
-
-		// if gNode.createdBy != "contain gtree" {
-		// 	goroutineList = append(goroutineList, gNode)
-		// }
 		if isTarget {
 			goroutineList = append(goroutineList, gNode)
 		}
