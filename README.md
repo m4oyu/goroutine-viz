@@ -4,6 +4,8 @@ A simple goroutine visualization tool
 
 ## Usage
 
+.go file
+
 ```go
 package main
 
@@ -22,6 +24,8 @@ func main() {
     <-time.After(time.Second * 1)
 }
 ```
+
+output
 
 ```bash
 $ go run main.go

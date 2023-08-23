@@ -1,4 +1,4 @@
-package visualizationtool
+package goroutine_viz
 
 import (
 	"bufio"
